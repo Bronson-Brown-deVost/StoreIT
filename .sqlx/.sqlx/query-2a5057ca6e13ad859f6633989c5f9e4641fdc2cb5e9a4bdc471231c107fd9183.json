@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM photos",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "2a5057ca6e13ad859f6633989c5f9e4641fdc2cb5e9a4bdc471231c107fd9183"
+}

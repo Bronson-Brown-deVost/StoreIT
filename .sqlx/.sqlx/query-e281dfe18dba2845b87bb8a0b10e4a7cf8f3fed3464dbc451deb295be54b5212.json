@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO items (id, group_id, container_id, location_id, name, description,\n                   aliases, keywords, category, barcode, material, color, condition_notes, quantity)\n                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 14
+    },
+    "nullable": []
+  },
+  "hash": "e281dfe18dba2845b87bb8a0b10e4a7cf8f3fed3464dbc451deb295be54b5212"
+}

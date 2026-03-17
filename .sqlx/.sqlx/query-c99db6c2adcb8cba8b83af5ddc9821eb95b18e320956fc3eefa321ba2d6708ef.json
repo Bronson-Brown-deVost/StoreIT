@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE locations SET name = ?, description = ?, latitude = ?, longitude = ?,\n               updated_at = strftime('%Y-%m-%dT%H:%M:%f', 'now')\n               WHERE id = ? AND group_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "c99db6c2adcb8cba8b83af5ddc9821eb95b18e320956fc3eefa321ba2d6708ef"
+}

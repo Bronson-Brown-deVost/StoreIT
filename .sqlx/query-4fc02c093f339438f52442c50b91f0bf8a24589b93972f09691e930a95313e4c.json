@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO containers (id, group_id, parent_location_id, parent_container_id, name, description, color)\n               VALUES (?, ?, ?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "4fc02c093f339438f52442c50b91f0bf8a24589b93972f09691e930a95313e4c"
+}

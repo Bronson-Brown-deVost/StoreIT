@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM nfc_tags",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "5ec95dd44d1aa9354e3f59878fe64b0b50940bfd6517000a66f54df7dd2a8d2a"
+}

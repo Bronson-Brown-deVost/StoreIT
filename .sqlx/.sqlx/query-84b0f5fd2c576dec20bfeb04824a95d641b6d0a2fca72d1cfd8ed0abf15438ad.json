@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM locations WHERE id = ? AND group_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "84b0f5fd2c576dec20bfeb04824a95d641b6d0a2fca72d1cfd8ed0abf15438ad"
+}

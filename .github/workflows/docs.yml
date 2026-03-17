@@ -1,0 +1,116 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  SQLX_OFFLINE: "true"
+
+jobs:
+  build:
+    name: Build Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install mdBook
+        run: |
+          tag=$(curl -sS https://api.github.com/repos/rust-lang/mdBook/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
+          curl -sSL "https://github.com/rust-lang/mdBook/releases/download/${tag}/mdbook-${tag}-x86_64-unknown-linux-gnu.tar.gz" | tar -xz
+          chmod +x mdbook
+          sudo mv mdbook /usr/local/bin/
+
+      # Build server to extract OpenAPI spec
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend
+        run: cd frontend && npm ci && npm run build
+
+      - name: Build server
+        run: cargo build -p storeit-server --release
+
+      - name: Extract OpenAPI spec
+        run: |
+          # Start server in background with in-memory DB
+          DATABASE_URL="sqlite::memory:" \
+          STOREIT_IMAGE_PATH="/tmp/storeit-images" \
+          STOREIT_BIND="127.0.0.1:9999" \
+          ./target/release/storeit-server &
+          SERVER_PID=$!
+
+          # Wait for it to be ready
+          for i in $(seq 1 30); do
+            if curl -s http://127.0.0.1:9999/api/v1/auth/mode > /dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+
+          # Grab the OpenAPI spec
+          curl -s http://127.0.0.1:9999/api-docs/openapi.json > docs/api/openapi.json
+
+          # Stop server
+          kill $SERVER_PID 2>/dev/null || true
+
+      - name: Build user guide
+        run: mdbook build docs/user
+
+      - name: Build developer guide
+        run: mdbook build docs/dev
+
+      - name: Assemble site
+        run: |
+          mkdir -p site/api
+          cp -r target/docs/user site/user
+          cp -r target/docs/dev site/dev
+          cp docs/api/swagger.html site/api/index.html
+          cp docs/api/openapi.json site/api/openapi.json
+          cat > site/index.html << 'INDEXEOF'
+          <!DOCTYPE html>
+          <html>
+          <head><meta charset="utf-8"><title>StoreIT Documentation</title>
+          <style>body{font-family:system-ui,sans-serif;max-width:600px;margin:80px auto;padding:0 20px}a{color:#2563eb}</style>
+          </head>
+          <body>
+          <h1>StoreIT Documentation</h1>
+          <ul>
+          <li><a href="user/">User Guide</a> — Installation, usage, deployment</li>
+          <li><a href="dev/">Developer Guide</a> — Architecture, codebase, contributing</li>
+          <li><a href="api/">API Reference</a> — Interactive OpenAPI documentation</li>
+          </ul>
+          </body>
+          </html>
+          INDEXEOF
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

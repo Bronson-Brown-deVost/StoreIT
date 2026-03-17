@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE nfc_tags SET entity_type = ?, entity_id = ?,\n               assigned_at = strftime('%Y-%m-%dT%H:%M:%f', 'now')\n               WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "ec815dfcc9ac20ff78e1b0252e4fa0f0d363820ba63ee0537d2587b184d71d21"
+}

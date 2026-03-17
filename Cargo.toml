@@ -1,0 +1,26 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/storeit-domain",
+    "crates/storeit-db-sqlite",
+    "crates/storeit-storage-fs",
+    "crates/storeit-auth",
+    "crates/storeit-ai",
+    "crates/storeit-server",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+
+[workspace.dependencies]
+async-trait = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+uuid = { version = "1", features = ["v4", "serde"] }

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO photos (id, entity_type, entity_id, storage_key, thumbnail_key, large_key, mime_type, is_primary, rotation)\n               VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "2c54b43778160af49814c66c8614123b397d1425d7571fd8a0812fb114150fc1"
+}

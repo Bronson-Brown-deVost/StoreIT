@@ -1,0 +1,116 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id, group_id, container_id, location_id, name, description,\n               aliases, keywords, category, barcode, material, color, condition_notes,\n               quantity, ai_raw, created_at, updated_at\n               FROM items ORDER BY name",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "group_id",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "container_id",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "location_id",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "name",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "description",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "aliases",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "keywords",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "category",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "barcode",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "material",
+        "ordinal": 10,
+        "type_info": "Text"
+      },
+      {
+        "name": "color",
+        "ordinal": 11,
+        "type_info": "Text"
+      },
+      {
+        "name": "condition_notes",
+        "ordinal": 12,
+        "type_info": "Text"
+      },
+      {
+        "name": "quantity",
+        "ordinal": 13,
+        "type_info": "Integer"
+      },
+      {
+        "name": "ai_raw",
+        "ordinal": 14,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 15,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at",
+        "ordinal": 16,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "8ecdda45d3dda58c4ce81df7b85d8814b4de172e7d78058e47c8c61a594651aa"
+}

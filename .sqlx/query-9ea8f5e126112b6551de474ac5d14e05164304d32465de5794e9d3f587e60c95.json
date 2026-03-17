@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE nfc_tags SET entity_type = NULL, entity_id = NULL, assigned_at = NULL WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "9ea8f5e126112b6551de474ac5d14e05164304d32465de5794e9d3f587e60c95"
+}

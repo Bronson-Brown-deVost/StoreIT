@@ -1,0 +1,17 @@
+[package]
+name = "storeit-storage-fs"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+storeit-domain = { path = "../storeit-domain" }
+async-trait.workspace = true
+tokio = { workspace = true, features = ["fs", "io-util"] }
+sha2 = "0.10"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "gif", "webp"] }
+tracing.workspace = true
+webp = "0.3.1"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tempfile = "3"

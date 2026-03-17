@@ -1,0 +1,56 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id, group_id, tag_uri, entity_type, entity_id, created_at, assigned_at\n               FROM nfc_tags WHERE group_id = ? ORDER BY created_at DESC",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "group_id",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "tag_uri",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "entity_type",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "entity_id",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "assigned_at",
+        "ordinal": 6,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "42a25240af8a68c0507fa028bca66c1b7fe12efcb1b87fbc2f5bd83ce02de997"
+}

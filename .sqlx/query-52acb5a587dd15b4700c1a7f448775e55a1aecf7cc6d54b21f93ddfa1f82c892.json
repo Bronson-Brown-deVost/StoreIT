@@ -1,0 +1,68 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id, group_id, parent_location_id, parent_container_id, name, description, color, created_at, updated_at\n               FROM containers WHERE group_id = ?\n               ORDER BY name",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "group_id",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "parent_location_id",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "parent_container_id",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "name",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "description",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "color",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at",
+        "ordinal": 8,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "52acb5a587dd15b4700c1a7f448775e55a1aecf7cc6d54b21f93ddfa1f82c892"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE photos SET is_primary = 0 WHERE entity_type = ? AND entity_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "e1dbf01bb6aed60921dbe0851d81a8c2bd6a5d7fc5745c3726f0774083fa8198"
+}

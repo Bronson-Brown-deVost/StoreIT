@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="96" fill="#1e293b"/>
+  <!-- House/warehouse roof -->
+  <path d="M96 220L256 108l160 112v16H96v-16z" fill="#3b82f6"/>
+  <!-- Building body -->
+  <rect x="112" y="236" width="288" height="180" rx="8" fill="#3b82f6" opacity="0.85"/>
+  <!-- Storage box (center) -->
+  <rect x="184" y="276" width="144" height="100" rx="6" fill="#0f172a" opacity="0.35"/>
+  <!-- Box horizontal divider -->
+  <rect x="184" y="318" width="144" height="4" rx="2" fill="#f8fafc" opacity="0.5"/>
+  <!-- Box handle top -->
+  <rect x="232" y="290" width="48" height="4" rx="2" fill="#f8fafc" opacity="0.5"/>
+  <!-- Box handle bottom -->
+  <rect x="232" y="338" width="48" height="4" rx="2" fill="#f8fafc" opacity="0.5"/>
+</svg>

@@ -1,0 +1,13 @@
+[book]
+title = "StoreIT Developer Guide"
+authors = ["StoreIT Contributors"]
+language = "en"
+src = "src"
+
+[build]
+build-dir = "../../target/docs/dev"
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/Bronson-Brown-deVost/StoreIT"

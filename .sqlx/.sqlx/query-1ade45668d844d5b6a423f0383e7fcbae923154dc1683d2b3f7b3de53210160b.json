@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE photos SET rotation = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "1ade45668d844d5b6a423f0383e7fcbae923154dc1683d2b3f7b3de53210160b"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE containers SET parent_location_id = ?, parent_container_id = ?,\n               updated_at = strftime('%Y-%m-%dT%H:%M:%f', 'now')\n               WHERE id = ? AND group_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "390f5208b5f37db5dc9a18bd2392c178c2439f6e1db7b1b828af7286bd81a603"
+}
