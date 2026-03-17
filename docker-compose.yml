@@ -1,0 +1,15 @@
+services:
+  storeit:
+    image: ghcr.io/bronson-brown-devost/storeit:latest
+    # To build locally instead: comment out 'image' and uncomment 'build'
+    # build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      # Bind mounts — data is stored directly on the host filesystem.
+      # Change these paths to wherever you want your data stored.
+      - ./data/db:/data/db
+      - ./data/images:/data/images
+    env_file:
+      - .env
+    restart: unless-stopped

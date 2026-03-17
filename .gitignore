@@ -1,0 +1,29 @@
+/target
+.direnv/
+.claude/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.db.pre-import
+.env
+/data/
+/coverage/
+# DO check in .sqlx/ for offline compile-time checking
+
+# Backup archives
+*.storeit
+
+# Python
+__pycache__/
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/
+
+# E2E
+/e2e/node_modules/
+/test-results/
+
+# AI
+CLAUDE.md

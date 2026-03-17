@@ -1,0 +1,67 @@
+[package]
+name = "storeit-server"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+storeit-domain = { path = "../storeit-domain" }
+storeit-db-sqlite = { path = "../storeit-db-sqlite" }
+storeit-storage-fs = { path = "../storeit-storage-fs" }
+storeit-auth = { path = "../storeit-auth", features = ["test-support"] }
+storeit-ai = { path = "../storeit-ai" }
+
+# Web framework
+axum = { version = "0.8", features = ["multipart", "macros"] }
+axum-extra = { version = "0.10", features = ["typed-header", "cookie-signed"] }
+tokio.workspace = true
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# OpenAPI
+utoipa = { version = "5", features = ["axum_extras", "uuid", "chrono"] }
+utoipa-axum = "0.2"
+utoipa-swagger-ui = { version = "9", features = ["axum"] }
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite"] }
+
+# Session / cookie
+rand = "0.8"
+time = "0.3"
+
+# Static file embedding
+rust-embed = { version = "8", features = ["interpolate-folder-path"] }
+mime_guess = "2"
+
+# Platform directories
+dirs = "6"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Backup / restore
+dashmap = "6"
+tar = "0.4"
+flate2 = "1"
+zstd = "0.13"
+
+tempfile = "3"
+
+# Misc
+tracing.workspace = true
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+thiserror.workspace = true
+anyhow = "1"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "cookies", "rustls-tls"] }
+storeit-auth = { path = "../storeit-auth", features = ["test-support"] }
+storeit-ai = { path = "../storeit-ai", features = ["test-support"] }
+tempfile = "3"

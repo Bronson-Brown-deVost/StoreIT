@@ -1,0 +1,21 @@
+[package]
+name = "storeit-auth"
+version.workspace = true
+edition.workspace = true
+
+[features]
+test-support = []
+
+[dependencies]
+async-trait.workspace = true
+argon2 = "0.5"
+openidconnect = { version = "3", default-features = false, features = ["reqwest", "rustls-tls"] }
+serde.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+url = "2"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+serde_json.workspace = true

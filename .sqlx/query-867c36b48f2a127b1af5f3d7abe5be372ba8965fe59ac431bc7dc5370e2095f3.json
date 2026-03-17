@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO locations (id, group_id, parent_id, name, description, latitude, longitude, created_at, updated_at)\n               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 9
+    },
+    "nullable": []
+  },
+  "hash": "867c36b48f2a127b1af5f3d7abe5be372ba8965fe59ac431bc7dc5370e2095f3"
+}

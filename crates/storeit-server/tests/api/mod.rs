@@ -1,0 +1,15 @@
+mod admin_backup_test;
+mod admin_groups_test;
+mod admin_restore_test;
+mod admin_settings_test;
+mod admin_users_test;
+mod auth_test;
+mod containers_test;
+mod identify_test;
+mod items_test;
+mod local_auth_test;
+mod locations_test;
+mod nfc_test;
+mod openapi_test;
+mod photos_test;
+mod search_test;

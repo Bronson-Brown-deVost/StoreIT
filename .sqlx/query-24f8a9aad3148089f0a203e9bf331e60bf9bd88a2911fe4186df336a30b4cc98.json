@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE photos SET storage_key = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "24f8a9aad3148089f0a203e9bf331e60bf9bd88a2911fe4186df336a30b4cc98"
+}

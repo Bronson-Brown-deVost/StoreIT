@@ -1,0 +1,6 @@
+node_modules/
+test-results/
+playwright-report/
+setup/.auth-state.json
+setup/.server-pid
+setup/.temp-dir

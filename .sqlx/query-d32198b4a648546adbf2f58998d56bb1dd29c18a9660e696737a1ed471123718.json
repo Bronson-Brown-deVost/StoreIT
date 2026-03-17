@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO nfc_tags (id, group_id, tag_uri, entity_type, entity_id, created_at, assigned_at)\n               VALUES (?, ?, ?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "d32198b4a648546adbf2f58998d56bb1dd29c18a9660e696737a1ed471123718"
+}

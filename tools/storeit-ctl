@@ -1,0 +1,647 @@
+#!/usr/bin/env python3
+"""
+storeit-ctl — Management tool for StoreIT upgrades, downgrades, and backups.
+
+Requires Python 3.8+ with stdlib only (no pip dependencies).
+
+Usage:
+    storeit-ctl status                    Show running version, schema version, health
+    storeit-ctl backup [-o path]          Download backup archive from running server
+    storeit-ctl upgrade [version]         Export → download new binary → stop → import → start
+    storeit-ctl downgrade <version>       Same as upgrade but to an older version
+    storeit-ctl install [version]         Fresh install: download binary, create dirs, start
+    storeit-ctl rollback                  Restore .db.pre-import + old binary, restart
+    storeit-ctl cleanup                   Remove rollback files after confirming new version works
+"""
+
+import argparse
+import json
+import os
+import platform
+import shutil
+import signal
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+
+DEFAULT_SERVER_URL = "http://localhost:8080"
+DEFAULT_CONFIG_PATH = Path.home() / ".config" / "storeit" / "ctl.conf"
+
+# Platform-appropriate defaults
+if platform.system() == "Darwin":
+    DEFAULT_BINARY_PATH = str(Path.home() / ".local" / "bin" / "storeit-server")
+    DEFAULT_DATA_DIR = str(Path.home() / "Library" / "Application Support" / "storeit")
+elif platform.system() == "Windows":
+    DEFAULT_BINARY_PATH = str(Path.home() / "AppData" / "Local" / "storeit" / "storeit-server.exe")
+    DEFAULT_DATA_DIR = str(Path.home() / "AppData" / "Local" / "storeit" / "data")
+else:
+    DEFAULT_BINARY_PATH = "/usr/local/bin/storeit-server"
+    DEFAULT_DATA_DIR = "/var/lib/storeit"
+
+# GitHub releases API URL
+RELEASES_URL = "https://api.github.com/repos/Bronson-Brown-deVost/StoreIT/releases"
+
+
+def load_config():
+    """Load config from file or environment variables."""
+    config = {
+        "server_url": os.environ.get("STOREIT_CTL_SERVER_URL", DEFAULT_SERVER_URL),
+        "binary_path": os.environ.get("STOREIT_CTL_BINARY_PATH", DEFAULT_BINARY_PATH),
+        "data_dir": os.environ.get("STOREIT_CTL_DATA_DIR", DEFAULT_DATA_DIR),
+        "auth_cookie": os.environ.get("STOREIT_CTL_AUTH_COOKIE", ""),
+        "releases_url": os.environ.get("STOREIT_CTL_RELEASES_URL", RELEASES_URL),
+    }
+
+    config_path = Path(os.environ.get("STOREIT_CTL_CONFIG", DEFAULT_CONFIG_PATH))
+    if config_path.exists():
+        with open(config_path) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" in line:
+                    key, _, value = line.partition("=")
+                    key = key.strip().lower()
+                    value = value.strip()
+                    if key in config:
+                        config[key] = value
+
+    return config
+
+
+# ---------------------------------------------------------------------------
+# HTTP helpers
+# ---------------------------------------------------------------------------
+
+
+def api_request(config, method, path, data=None, timeout=30):
+    """Make an HTTP request to the StoreIT API."""
+    url = config["server_url"].rstrip("/") + path
+    headers = {"Content-Type": "application/json"}
+    if config["auth_cookie"]:
+        headers["Cookie"] = config["auth_cookie"]
+
+    body = json.dumps(data).encode() if data else None
+    req = urllib.request.Request(url, data=body, headers=headers, method=method)
+
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            content = resp.read()
+            if content:
+                return json.loads(content), resp.status
+            return None, resp.status
+    except urllib.error.HTTPError as e:
+        body = e.read().decode(errors="replace")
+        return {"error": body}, e.code
+    except urllib.error.URLError as e:
+        return {"error": str(e.reason)}, 0
+
+
+def download_file(url, dest_path, timeout=300):
+    """Download a file from URL to dest_path."""
+    req = urllib.request.Request(url)
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with open(dest_path, "wb") as f:
+            shutil.copyfileobj(resp, f)
+
+
+# ---------------------------------------------------------------------------
+# Commands
+# ---------------------------------------------------------------------------
+
+
+def cmd_status(config, args):
+    """Show running server version, schema version, and health."""
+    # Health check
+    resp, code = api_request(config, "GET", "/api/v1/auth/mode")
+    if code == 0:
+        print("Server: NOT RUNNING")
+        return 1
+
+    print(f"Server: running at {config['server_url']}")
+
+    # Schema version
+    resp, code = api_request(config, "GET", "/api/v1/admin/schema-version")
+    if code == 200 and resp:
+        print(f"App version: {resp.get('app_version', 'unknown')}")
+        print(f"Schema version: {resp.get('schema_version', 'unknown')}")
+        print(f"Expected schema version: {resp.get('expected_version', 'unknown')}")
+    else:
+        print("Schema version: unable to retrieve (admin access required?)")
+
+    # Binary version (if accessible)
+    binary = config["binary_path"]
+    if os.path.exists(binary):
+        try:
+            result = subprocess.run(
+                [binary, "version"], capture_output=True, text=True, timeout=10
+            )
+            if result.returncode == 0:
+                info = json.loads(result.stdout)
+                print(f"Binary version: {info.get('app_version', 'unknown')}")
+        except Exception:
+            pass
+
+    return 0
+
+
+def cmd_backup(config, args):
+    """Trigger a backup via the API and download the archive."""
+    output_path = args.output or f"storeit-backup-{int(time.time())}.storeit"
+
+    print("Starting backup...")
+    resp, code = api_request(
+        config, "POST", "/api/v1/admin/backup", {"include_images": True}
+    )
+    if code != 200:
+        print(f"Failed to start backup: {resp}", file=sys.stderr)
+        return 1
+
+    job_id = resp["job_id"]
+    print(f"Backup job: {job_id}")
+
+    # Poll until complete
+    while True:
+        resp, code = api_request(
+            config, "GET", f"/api/v1/admin/backup/{job_id}/status"
+        )
+        if code != 200:
+            print(f"Failed to check status: {resp}", file=sys.stderr)
+            return 1
+
+        status = resp["status"]
+        progress = resp.get("progress", 0)
+        total = resp.get("total", 0)
+
+        if status == "complete":
+            print(f"Backup complete ({progress}/{total})")
+            break
+        elif status == "failed":
+            print(f"Backup failed: {resp.get('error', 'unknown')}", file=sys.stderr)
+            return 1
+        else:
+            if total > 0:
+                print(f"  Progress: {progress}/{total}", end="\r")
+            time.sleep(1)
+
+    # Download
+    print(f"Downloading to {output_path}...")
+    url = config["server_url"].rstrip("/") + f"/api/v1/admin/backup/{job_id}/download"
+    headers = {}
+    if config["auth_cookie"]:
+        headers["Cookie"] = config["auth_cookie"]
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=600) as resp:
+        with open(output_path, "wb") as f:
+            shutil.copyfileobj(resp, f)
+
+    size_mb = os.path.getsize(output_path) / (1024 * 1024)
+    print(f"Backup saved: {output_path} ({size_mb:.1f} MB)")
+    return 0
+
+
+def cmd_upgrade(config, args):
+    """Upgrade to a new version: export → stop → import → start."""
+    target_version = args.version or "latest"
+    return _migrate(config, target_version, direction="upgrade")
+
+
+def cmd_downgrade(config, args):
+    """Downgrade to an older version."""
+    if not args.version:
+        print("Error: version is required for downgrade", file=sys.stderr)
+        return 1
+    return _migrate(config, args.version, direction="downgrade")
+
+
+def _migrate(config, target_version, direction="upgrade"):
+    """Core migration logic shared by upgrade and downgrade."""
+    binary = config["binary_path"]
+    data_dir = config["data_dir"]
+
+    # Step 1: Confirm server is running
+    resp, code = api_request(config, "GET", "/api/v1/admin/schema-version")
+    if code == 0:
+        print("Error: server is not running", file=sys.stderr)
+        return 1
+    if code == 200:
+        current_version = resp.get("app_version", "unknown")
+        print(f"Current version: {current_version}")
+
+    # Step 2: Backup
+    print("Creating backup before migration...")
+    backup_path = os.path.join(data_dir, f"pre-{direction}.storeit")
+    # Reuse backup logic
+    resp, code = api_request(
+        config, "POST", "/api/v1/admin/backup", {"include_images": True}
+    )
+    if code != 200:
+        print(f"Failed to start backup: {resp}", file=sys.stderr)
+        return 1
+
+    job_id = resp["job_id"]
+    while True:
+        resp, code = api_request(
+            config, "GET", f"/api/v1/admin/backup/{job_id}/status"
+        )
+        if resp["status"] == "complete":
+            break
+        elif resp["status"] == "failed":
+            print(f"Backup failed: {resp.get('error')}", file=sys.stderr)
+            return 1
+        time.sleep(1)
+
+    # Download backup
+    url = config["server_url"].rstrip("/") + f"/api/v1/admin/backup/{job_id}/download"
+    headers = {}
+    if config["auth_cookie"]:
+        headers["Cookie"] = config["auth_cookie"]
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=600) as resp:
+        with open(backup_path, "wb") as f:
+            shutil.copyfileobj(resp, f)
+    print(f"Backup saved to {backup_path}")
+
+    # Step 3: Download target version binary
+    print(f"Downloading {direction} target: {target_version}...")
+    new_binary_path = binary + ".new"
+    download_url = _resolve_download_url(config, target_version)
+    if not download_url:
+        print(
+            f"Error: could not resolve download URL for version {target_version}",
+            file=sys.stderr,
+        )
+        return 1
+
+    try:
+        download_file(download_url, new_binary_path)
+        os.chmod(new_binary_path, 0o755)
+    except Exception as e:
+        print(f"Error downloading binary: {e}", file=sys.stderr)
+        return 1
+
+    # Step 4: Stop server
+    print("Stopping server...")
+    _stop_server(config)
+    time.sleep(2)
+
+    # Step 5: Swap binaries
+    pre_upgrade_binary = binary + f".pre-{direction}"
+    if os.path.exists(binary):
+        shutil.move(binary, pre_upgrade_binary)
+    shutil.move(new_binary_path, binary)
+
+    # Step 6: Import data with new binary
+    print("Importing data with new binary...")
+    result = subprocess.run(
+        [binary, "import", backup_path, "--mode", "replace"],
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+    if result.returncode != 0:
+        print(f"Import failed:\n{result.stderr}", file=sys.stderr)
+        print("Rolling back...")
+        _rollback_binary(binary, pre_upgrade_binary)
+        return 1
+
+    # Step 7: Start new server
+    print("Starting server...")
+    _start_server(config)
+    time.sleep(3)
+
+    # Step 8: Health check
+    resp, code = api_request(config, "GET", "/api/v1/auth/mode")
+    if code == 0 or code >= 500:
+        print("Health check failed — rolling back...", file=sys.stderr)
+        _stop_server(config)
+        _rollback_binary(binary, pre_upgrade_binary)
+        # Restore old DB from .pre-import
+        db_path = os.path.join(data_dir, "storeit.db")
+        pre_import_db = db_path + ".pre-import"
+        if os.path.exists(pre_import_db):
+            if os.path.exists(db_path):
+                os.remove(db_path)
+            shutil.move(pre_import_db, db_path)
+        _start_server(config)
+        return 1
+
+    print(f"{direction.capitalize()} complete!")
+    print(f"Old binary saved at: {pre_upgrade_binary}")
+    print("Run 'storeit-ctl cleanup' after verifying everything works.")
+    return 0
+
+
+def cmd_install(config, args):
+    """Fresh install: download binary, create dirs, start."""
+    target_version = args.version or "latest"
+    binary = config["binary_path"]
+    data_dir = config["data_dir"]
+
+    if os.path.exists(binary):
+        print(f"Binary already exists at {binary}. Use 'upgrade' instead.")
+        return 1
+
+    print(f"Installing StoreIT {target_version}...")
+
+    # Create directories
+    os.makedirs(data_dir, exist_ok=True)
+    os.makedirs(os.path.dirname(binary), exist_ok=True)
+
+    # Download binary
+    download_url = _resolve_download_url(config, target_version)
+    if not download_url:
+        print(f"Error: could not resolve download URL for {target_version}", file=sys.stderr)
+        return 1
+
+    try:
+        download_file(download_url, binary)
+        os.chmod(binary, 0o755)
+    except Exception as e:
+        print(f"Error downloading binary: {e}", file=sys.stderr)
+        return 1
+
+    print(f"Binary installed at {binary}")
+    print(f"Data directory: {data_dir}")
+
+    # Check if binary dir is on PATH
+    bin_dir = os.path.dirname(binary)
+    if bin_dir not in os.environ.get("PATH", "").split(os.pathsep):
+        print(f"\nAdd the binary to your PATH:")
+        print(f"  export PATH=\"{bin_dir}:$PATH\"")
+
+    db_path = os.path.join(data_dir, "storeit.db")
+    print(f"\nStart the server with:")
+    print(f"  DATABASE_URL=sqlite:{db_path} STOREIT_IMAGE_PATH={data_dir}/images storeit-server")
+    return 0
+
+
+def cmd_rollback(config, args):
+    """Restore .db.pre-import and old binary, restart."""
+    binary = config["binary_path"]
+    data_dir = config["data_dir"]
+
+    # Find pre-upgrade/downgrade binary
+    pre_binary = None
+    for suffix in [".pre-upgrade", ".pre-downgrade"]:
+        candidate = binary + suffix
+        if os.path.exists(candidate):
+            pre_binary = candidate
+            break
+
+    if not pre_binary:
+        print("No rollback binary found", file=sys.stderr)
+        return 1
+
+    print("Stopping server...")
+    _stop_server(config)
+    time.sleep(2)
+
+    # Restore binary
+    _rollback_binary(binary, pre_binary)
+
+    # Restore DB
+    db_path = os.path.join(data_dir, "storeit.db")
+    pre_import_db = db_path + ".pre-import"
+    if os.path.exists(pre_import_db):
+        if os.path.exists(db_path):
+            os.remove(db_path)
+        shutil.move(pre_import_db, db_path)
+        print(f"Database restored from {pre_import_db}")
+
+    print("Starting server...")
+    _start_server(config)
+    time.sleep(3)
+
+    # Health check
+    resp, code = api_request(config, "GET", "/api/v1/auth/mode")
+    if code > 0 and code < 500:
+        print("Rollback complete — server is healthy")
+        return 0
+    else:
+        print("Warning: server may not be healthy after rollback", file=sys.stderr)
+        return 1
+
+
+def cmd_cleanup(config, args):
+    """Remove rollback files after confirming new version works."""
+    binary = config["binary_path"]
+    data_dir = config["data_dir"]
+    removed = []
+
+    for suffix in [".pre-upgrade", ".pre-downgrade"]:
+        path = binary + suffix
+        if os.path.exists(path):
+            os.remove(path)
+            removed.append(path)
+
+    db_path = os.path.join(data_dir, "storeit.db.pre-import")
+    if os.path.exists(db_path):
+        os.remove(db_path)
+        removed.append(db_path)
+
+    if removed:
+        print("Cleaned up rollback files:")
+        for f in removed:
+            print(f"  {f}")
+    else:
+        print("No rollback files to clean up")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _resolve_download_url(config, version):
+    """Resolve a download URL for the given version.
+
+    Asset naming convention from CI:
+        storeit-server-linux-x86_64
+        storeit-server-linux-x86_64-musl
+        storeit-server-linux-aarch64
+        storeit-server-linux-aarch64-musl
+        storeit-server-darwin-x86_64
+        storeit-server-darwin-aarch64
+        storeit-server-windows-x86_64.exe
+    """
+    system = platform.system().lower()
+    machine = platform.machine().lower()
+
+    # Normalize architecture
+    arch_map = {
+        "x86_64": "x86_64",
+        "amd64": "x86_64",
+        "aarch64": "aarch64",
+        "arm64": "aarch64",
+    }
+    arch = arch_map.get(machine, machine)
+
+    # Build the preferred asset name.
+    # On Linux, prefer musl (static, works on any distro) over glibc.
+    if system == "linux":
+        preferred = [
+            f"storeit-server-linux-{arch}-musl",
+            f"storeit-server-linux-{arch}",
+        ]
+    elif system == "darwin":
+        preferred = [f"storeit-server-darwin-{arch}"]
+    elif system == "windows":
+        preferred = [f"storeit-server-windows-{arch}.exe"]
+    else:
+        preferred = [f"storeit-server-{system}-{arch}"]
+
+    releases_url = config["releases_url"]
+
+    try:
+        if version == "latest":
+            url = releases_url + "/latest"
+        else:
+            url = releases_url + f"/tags/v{version}"
+
+        req = urllib.request.Request(url)
+        req.add_header("Accept", "application/vnd.github+json")
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            release = json.loads(resp.read())
+
+        assets = {a["name"]: a["browser_download_url"] for a in release.get("assets", [])}
+
+        for name in preferred:
+            if name in assets:
+                return assets[name]
+
+        # Fallback: partial match
+        for name in preferred:
+            for asset_name, asset_url in assets.items():
+                if name in asset_name:
+                    return asset_url
+
+        available = ", ".join(sorted(assets.keys()))
+        print(
+            f"No matching binary for {system}-{arch}.\n"
+            f"Available assets: {available}",
+            file=sys.stderr,
+        )
+        return None
+    except Exception as e:
+        print(f"Error fetching release info: {e}", file=sys.stderr)
+        return None
+
+
+def _stop_server(config):
+    """Stop the StoreIT server."""
+    # Try systemd first
+    result = subprocess.run(
+        ["systemctl", "stop", "storeit"], capture_output=True, timeout=30
+    )
+    if result.returncode == 0:
+        return
+
+    # Try finding PID
+    try:
+        result = subprocess.run(
+            ["pgrep", "-f", "storeit-server"], capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            for pid in result.stdout.strip().split("\n"):
+                if pid:
+                    os.kill(int(pid), signal.SIGTERM)
+    except Exception:
+        pass
+
+
+def _start_server(config):
+    """Start the StoreIT server."""
+    # Try systemd first
+    result = subprocess.run(
+        ["systemctl", "start", "storeit"], capture_output=True, timeout=30
+    )
+    if result.returncode == 0:
+        return
+
+    # Fallback: start in background
+    binary = config["binary_path"]
+    subprocess.Popen(
+        [binary],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+
+
+def _rollback_binary(binary, pre_binary):
+    """Swap back to the pre-upgrade binary."""
+    if os.path.exists(binary):
+        os.remove(binary)
+    shutil.move(pre_binary, binary)
+    print(f"Binary restored from {pre_binary}")
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="storeit-ctl",
+        description="StoreIT management tool for upgrades, backups, and maintenance",
+    )
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
+
+    # status
+    subparsers.add_parser("status", help="Show running version and health")
+
+    # backup
+    backup_parser = subparsers.add_parser("backup", help="Download backup archive")
+    backup_parser.add_argument("-o", "--output", help="Output file path")
+
+    # upgrade
+    upgrade_parser = subparsers.add_parser("upgrade", help="Upgrade to a new version")
+    upgrade_parser.add_argument("version", nargs="?", help="Target version (default: latest)")
+
+    # downgrade
+    downgrade_parser = subparsers.add_parser("downgrade", help="Downgrade to an older version")
+    downgrade_parser.add_argument("version", help="Target version")
+
+    # install
+    install_parser = subparsers.add_parser("install", help="Fresh install")
+    install_parser.add_argument("version", nargs="?", help="Version to install (default: latest)")
+
+    # rollback
+    subparsers.add_parser("rollback", help="Rollback to pre-upgrade state")
+
+    # cleanup
+    subparsers.add_parser("cleanup", help="Remove rollback files")
+
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        return 1
+
+    config = load_config()
+
+    commands = {
+        "status": cmd_status,
+        "backup": cmd_backup,
+        "upgrade": cmd_upgrade,
+        "downgrade": cmd_downgrade,
+        "install": cmd_install,
+        "rollback": cmd_rollback,
+        "cleanup": cmd_cleanup,
+    }
+
+    return commands[args.command](config, args)
+
+
+if __name__ == "__main__":
+    sys.exit(main() or 0)
