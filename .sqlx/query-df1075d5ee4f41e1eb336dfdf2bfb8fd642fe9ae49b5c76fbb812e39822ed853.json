@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT id, entity_type, entity_id, storage_key, mime_type, is_primary, rotation, created_at\n               FROM photos WHERE id = ?",
+  "query": "SELECT id, entity_type, entity_id, storage_key, thumbnail_key, large_key, mime_type, is_primary, rotation, created_at\n               FROM photos WHERE id = ?",
   "describe": {
     "columns": [
       {
@@ -24,23 +24,33 @@
         "type_info": "Text"
       },
       {
-        "name": "mime_type",
+        "name": "thumbnail_key",
         "ordinal": 4,
         "type_info": "Text"
       },
       {
-        "name": "is_primary",
+        "name": "large_key",
         "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "mime_type",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "is_primary",
+        "ordinal": 7,
         "type_info": "Integer"
       },
       {
         "name": "rotation",
-        "ordinal": 6,
+        "ordinal": 8,
         "type_info": "Integer"
       },
       {
         "name": "created_at",
-        "ordinal": 7,
+        "ordinal": 9,
         "type_info": "Text"
       }
     ],
@@ -52,11 +62,13 @@
       false,
       false,
       false,
+      true,
+      true,
       false,
       false,
       false,
       false
     ]
   },
-  "hash": "dc14d29ce33ff4f56733fc86075611eacfff20c9feb5bf8df650c5dd8ee9f88a"
+  "hash": "df1075d5ee4f41e1eb336dfdf2bfb8fd642fe9ae49b5c76fbb812e39822ed853"
 }

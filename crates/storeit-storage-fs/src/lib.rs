@@ -71,7 +71,7 @@ fn generate_large(data: &[u8]) -> Option<Vec<u8>> {
     }
     // Only resize if larger than LARGE_MAX_DIM
     if img.width() > LARGE_MAX_DIM || img.height() > LARGE_MAX_DIM {
-        img = img.thumbnail(LARGE_MAX_DIM, LARGE_MAX_DIM).into();
+        img = img.thumbnail(LARGE_MAX_DIM, LARGE_MAX_DIM);
     }
     let encoder = webp::Encoder::from_image(&img).ok()?;
     let webp_data = encoder.encode(85.0); // good quality for display
@@ -288,7 +288,10 @@ mod tests {
         let (storage, _dir) = make_storage();
         let keys = storage.store(b"test data", "image/png").await.unwrap();
         // Key format: {hex[..2]}/{hex}.{ext}
-        assert!(keys.storage_key.contains('/'), "key should contain shard separator");
+        assert!(
+            keys.storage_key.contains('/'),
+            "key should contain shard separator"
+        );
         let parts: Vec<&str> = keys.storage_key.splitn(2, '/').collect();
         assert_eq!(parts[0].len(), 2, "shard prefix should be 2 hex chars");
         assert!(parts[1].ends_with(".png"), "key should end with .png");
@@ -300,7 +303,10 @@ mod tests {
         let data = b"identical content";
         let keys1 = storage.store(data, "image/jpeg").await.unwrap();
         let keys2 = storage.store(data, "image/jpeg").await.unwrap();
-        assert_eq!(keys1.storage_key, keys2.storage_key, "same content should produce same key");
+        assert_eq!(
+            keys1.storage_key, keys2.storage_key,
+            "same content should produce same key"
+        );
 
         // Verify only one file on disk
         let shard_dir = dir.path().join(&keys1.storage_key[..2]);
@@ -359,7 +365,10 @@ mod tests {
     async fn delete_if_unreferenced_skips_when_referenced() {
         let (storage, _dir) = make_storage();
         let keys = storage.store(b"shared", "image/jpeg").await.unwrap();
-        let deleted = storage.delete_if_unreferenced(&keys.storage_key, 1).await.unwrap();
+        let deleted = storage
+            .delete_if_unreferenced(&keys.storage_key, 1)
+            .await
+            .unwrap();
         assert!(!deleted, "should not delete when ref_count > 0");
         assert!(
             storage.exists(&keys.storage_key).await.unwrap(),
@@ -371,9 +380,15 @@ mod tests {
     async fn delete_if_unreferenced_deletes_when_zero() {
         let (storage, _dir) = make_storage();
         let keys = storage.store(b"orphan", "image/jpeg").await.unwrap();
-        let deleted = storage.delete_if_unreferenced(&keys.storage_key, 0).await.unwrap();
+        let deleted = storage
+            .delete_if_unreferenced(&keys.storage_key, 0)
+            .await
+            .unwrap();
         assert!(deleted, "should delete when ref_count == 0");
-        assert!(!storage.exists(&keys.storage_key).await.unwrap(), "file should be gone");
+        assert!(
+            !storage.exists(&keys.storage_key).await.unwrap(),
+            "file should be gone"
+        );
     }
 
     #[tokio::test]

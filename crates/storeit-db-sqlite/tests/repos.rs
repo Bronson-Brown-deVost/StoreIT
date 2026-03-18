@@ -1193,7 +1193,9 @@ async fn photo_create_and_get() {
                 entity_id,
                 mime_type: "image/jpeg".into(),
             },
-            "items/test.jpg".into(), None, None,
+            "items/test.jpg".into(),
+            None,
+            None,
         )
         .await
         .unwrap();
@@ -1218,7 +1220,9 @@ async fn photo_list_by_entity() {
             entity_id: eid,
             mime_type: "image/png".into(),
         },
-        "a.png".into(), None, None,
+        "a.png".into(),
+        None,
+        None,
     )
     .await
     .unwrap();
@@ -1228,7 +1232,9 @@ async fn photo_list_by_entity() {
             entity_id: eid,
             mime_type: "image/png".into(),
         },
-        "b.png".into(), None, None,
+        "b.png".into(),
+        None,
+        None,
     )
     .await
     .unwrap();
@@ -1253,7 +1259,9 @@ async fn photo_set_primary() {
                 entity_id: eid,
                 mime_type: "image/jpeg".into(),
             },
-            "1.jpg".into(), None, None,
+            "1.jpg".into(),
+            None,
+            None,
         )
         .await
         .unwrap();
@@ -1264,7 +1272,9 @@ async fn photo_set_primary() {
                 entity_id: eid,
                 mime_type: "image/jpeg".into(),
             },
-            "2.jpg".into(), None, None,
+            "2.jpg".into(),
+            None,
+            None,
         )
         .await
         .unwrap();
@@ -1292,7 +1302,9 @@ async fn photo_delete() {
                 entity_id: Uuid::new_v4(),
                 mime_type: "image/jpeg".into(),
             },
-            "del.jpg".into(), None, None,
+            "del.jpg".into(),
+            None,
+            None,
         )
         .await
         .unwrap();
@@ -2515,7 +2527,9 @@ async fn photo_count_by_storage_key() {
             entity_id: eid,
             mime_type: "image/jpeg".into(),
         },
-        "shared.jpg".into(), None, None,
+        "shared.jpg".into(),
+        None,
+        None,
     )
     .await
     .unwrap();
@@ -2528,7 +2542,9 @@ async fn photo_count_by_storage_key() {
             entity_id: Uuid::new_v4(),
             mime_type: "image/jpeg".into(),
         },
-        "shared.jpg".into(), None, None,
+        "shared.jpg".into(),
+        None,
+        None,
     )
     .await
     .unwrap();
@@ -2548,7 +2564,9 @@ async fn photo_update_storage_key() {
                 entity_id: Uuid::new_v4(),
                 mime_type: "image/jpeg".into(),
             },
-            "old-key.jpg".into(), None, None,
+            "old-key.jpg".into(),
+            None,
+            None,
         )
         .await
         .unwrap();
@@ -2574,7 +2592,9 @@ async fn photo_list_all() {
             entity_id: Uuid::new_v4(),
             mime_type: "image/jpeg".into(),
         },
-        "1.jpg".into(), None, None,
+        "1.jpg".into(),
+        None,
+        None,
     )
     .await
     .unwrap();
@@ -2584,7 +2604,9 @@ async fn photo_list_all() {
             entity_id: Uuid::new_v4(),
             mime_type: "image/png".into(),
         },
-        "2.png".into(), None, None,
+        "2.png".into(),
+        None,
+        None,
     )
     .await
     .unwrap();
@@ -2630,7 +2652,9 @@ async fn photo_delete_all() {
             entity_id: Uuid::new_v4(),
             mime_type: "image/jpeg".into(),
         },
-        "a.jpg".into(), None, None,
+        "a.jpg".into(),
+        None,
+        None,
     )
     .await
     .unwrap();

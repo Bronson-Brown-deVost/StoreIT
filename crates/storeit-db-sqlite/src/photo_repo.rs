@@ -93,11 +93,7 @@ impl PhotoRepository for SqlitePhotoRepository {
         }
     }
 
-    async fn list_by_entity(
-        &self,
-        entity_type: EntityType,
-        entity_id: Uuid,
-    ) -> Result<Vec<Photo>> {
+    async fn list_by_entity(&self, entity_type: EntityType, entity_id: Uuid) -> Result<Vec<Photo>> {
         let et_str = entity_type.as_str();
         let eid_str = entity_id.to_string();
 
@@ -148,12 +144,7 @@ impl PhotoRepository for SqlitePhotoRepository {
         Ok(())
     }
 
-    async fn set_primary(
-        &self,
-        id: Uuid,
-        entity_type: EntityType,
-        entity_id: Uuid,
-    ) -> Result<()> {
+    async fn set_primary(&self, id: Uuid, entity_type: EntityType, entity_id: Uuid) -> Result<()> {
         let et_str = entity_type.as_str();
         let eid_str = entity_id.to_string();
         let id_str = id.to_string();
@@ -273,10 +264,7 @@ impl PhotoRepository for SqlitePhotoRepository {
         let et_str = photo.entity_type.as_str();
         let eid_str = photo.entity_id.to_string();
         let is_primary: i32 = if photo.is_primary { 1 } else { 0 };
-        let created = photo
-            .created_at
-            .format("%Y-%m-%dT%H:%M:%S%.3f")
-            .to_string();
+        let created = photo.created_at.format("%Y-%m-%dT%H:%M:%S%.3f").to_string();
 
         sqlx::query!(
             r#"INSERT INTO photos (id, entity_type, entity_id, storage_key, thumbnail_key, large_key, mime_type, is_primary, rotation, created_at)

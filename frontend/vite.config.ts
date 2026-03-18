@@ -56,8 +56,26 @@ export default defineConfig({
             urlPattern: /\/api\/v1\/photos\/[^/]+\/file/,
             handler: "CacheFirst",
             options: {
-              cacheName: "api-photos-cache",
+              cacheName: "api-photos-full-cache",
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /\/api\/v1\/photos\/[^/]+\/large/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "api-photos-large-cache",
               expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /\/api\/v1\/photos\/[^/]+\/thumbnail/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "api-photos-thumb-cache",
+              expiration: { maxEntries: 1000, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

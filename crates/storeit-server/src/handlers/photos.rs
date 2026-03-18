@@ -211,10 +211,7 @@ pub async fn get_photo_large(
         .ok_or_else(|| not_found("photo", id))?;
 
     // Prefer stored large_key; fall back to original file
-    let key = photo
-        .large_key
-        .as_deref()
-        .unwrap_or(&photo.storage_key);
+    let key = photo.large_key.as_deref().unwrap_or(&photo.storage_key);
     let (data, mime) = state.image_storage().retrieve(key).await?;
 
     Response::builder()

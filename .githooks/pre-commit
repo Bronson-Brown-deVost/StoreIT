@@ -1,0 +1,8 @@
+#!/bin/sh
+# Pre-commit hook: auto-fix formatting and clippy issues
+
+cargo fmt --all
+
+SQLX_OFFLINE=true cargo clippy --workspace --all-targets --fix --allow-dirty --allow-staged 2>/dev/null
+
+git add -u
