@@ -20,6 +20,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
     post,
     path = "/",
     tag = "identify",
+    description = "Upload a photo for AI-powered item identification. Returns suggested name, category, and other metadata.",
     request_body(content_type = "multipart/form-data"),
     responses(
         (status = 200, body = IdentificationResponse),
@@ -74,6 +75,7 @@ pub async fn identify(
     post,
     path = "/correct",
     tag = "identify",
+    description = "Re-identify a photo with a user-provided correction hint to improve the AI result.",
     request_body(content_type = "multipart/form-data"),
     responses(
         (status = 200, body = IdentificationResponse),

@@ -31,6 +31,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
     get,
     path = "/",
     tag = "containers",
+    description = "List all containers.",
     responses(
         (status = 200, body = Vec<ContainerResponse>),
     ),
@@ -48,6 +49,7 @@ pub async fn list_containers(
     post,
     path = "/",
     tag = "containers",
+    description = "Create a new container inside a location or another container.",
     request_body = CreateContainerRequest,
     responses(
         (status = 201, body = ContainerResponse),
@@ -80,6 +82,7 @@ pub async fn create_container(
     get,
     path = "/{id}",
     tag = "containers",
+    description = "Get a single container by ID.",
     params(("id" = Uuid, Path, description = "Container ID")),
     responses(
         (status = 200, body = ContainerResponse),
@@ -104,6 +107,7 @@ pub async fn get_container(
     put,
     path = "/{id}",
     tag = "containers",
+    description = "Update a container's name, description, or color.",
     params(("id" = Uuid, Path, description = "Container ID")),
     request_body = UpdateContainerRequest,
     responses(
@@ -136,6 +140,7 @@ pub async fn update_container(
     delete,
     path = "/{id}",
     tag = "containers",
+    description = "Delete a container. Fails with 409 if it still contains children.",
     params(("id" = Uuid, Path, description = "Container ID")),
     responses(
         (status = 204, description = "Deleted"),
@@ -158,6 +163,7 @@ pub async fn delete_container(
     post,
     path = "/{id}/move",
     tag = "containers",
+    description = "Move a container to a different parent location or container. Validates against circular nesting.",
     params(("id" = Uuid, Path, description = "Container ID")),
     request_body = MoveRequest,
     responses(
@@ -186,6 +192,7 @@ pub async fn move_container(
     get,
     path = "/{id}/ancestry",
     tag = "containers",
+    description = "Get the full ancestry (breadcrumb path) from root location to this container.",
     params(("id" = Uuid, Path, description = "Container ID")),
     responses(
         (status = 200, body = Vec<AncestryNodeResponse>),
@@ -205,6 +212,7 @@ pub async fn get_ancestry(
     get,
     path = "/{id}/containers",
     tag = "containers",
+    description = "List containers nested inside this container.",
     params(("id" = Uuid, Path, description = "Container ID")),
     responses(
         (status = 200, body = Vec<ContainerResponse>),
@@ -224,6 +232,7 @@ pub async fn list_child_containers(
     get,
     path = "/{id}/items",
     tag = "containers",
+    description = "List items inside this container.",
     params(("id" = Uuid, Path, description = "Container ID")),
     responses(
         (status = 200, body = Vec<ItemResponse>),

@@ -19,6 +19,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
     get,
     path = "/",
     tag = "search",
+    description = "Full-text search across locations, containers, and items.",
     params(SearchQuery),
     responses(
         (status = 200, body = SearchResponse),

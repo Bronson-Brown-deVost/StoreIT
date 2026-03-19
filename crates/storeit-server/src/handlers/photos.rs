@@ -33,6 +33,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
     post,
     path = "/",
     tag = "photos",
+    description = "Upload a photo and attach it to an entity. Thumbnails and large variants are generated server-side.",
     request_body(content_type = "multipart/form-data"),
     responses(
         (status = 201, body = PhotoResponse),
@@ -121,6 +122,7 @@ pub struct PhotoListQuery {
     get,
     path = "/by-entity",
     tag = "photos",
+    description = "List all photos attached to a specific entity (location, container, or item).",
     params(PhotoListQuery),
     responses(
         (status = 200, body = Vec<PhotoResponse>),
@@ -143,6 +145,7 @@ pub async fn list_entity_photos(
     get,
     path = "/{id}",
     tag = "photos",
+    description = "Get photo metadata by ID.",
     params(("id" = Uuid, Path, description = "Photo ID")),
     responses(
         (status = 200, body = PhotoResponse),
@@ -165,6 +168,7 @@ pub async fn get_photo(
     get,
     path = "/{id}/file",
     tag = "photos",
+    description = "Download the original full-resolution image file.",
     params(("id" = Uuid, Path, description = "Photo ID")),
     responses(
         (status = 200, description = "Original image file"),
@@ -194,6 +198,7 @@ pub async fn get_photo_file(
     get,
     path = "/{id}/large",
     tag = "photos",
+    description = "Download the large display variant (~1200px max dimension, WebP). Falls back to the original if no large variant exists.",
     params(("id" = Uuid, Path, description = "Photo ID")),
     responses(
         (status = 200, description = "Large display image (~1200px)"),
@@ -225,6 +230,7 @@ pub async fn get_photo_large(
     get,
     path = "/{id}/thumbnail",
     tag = "photos",
+    description = "Download the thumbnail variant (~200px, WebP). Used for grid views and cards.",
     params(("id" = Uuid, Path, description = "Photo ID")),
     responses(
         (status = 200, description = "Thumbnail image"),
@@ -262,6 +268,7 @@ pub async fn get_photo_thumbnail(
     delete,
     path = "/{id}",
     tag = "photos",
+    description = "Delete a photo and clean up storage files if no other photos reference them.",
     params(("id" = Uuid, Path, description = "Photo ID")),
     responses(
         (status = 204, description = "Deleted"),
@@ -310,6 +317,7 @@ pub async fn delete_photo(
     post,
     path = "/{id}/rotate",
     tag = "photos",
+    description = "Rotate a photo by the given degrees (accumulated, mod 360). Applied client-side via CSS transform.",
     params(("id" = Uuid, Path, description = "Photo ID")),
     request_body = RotatePhotoRequest,
     responses(

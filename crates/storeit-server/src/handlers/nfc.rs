@@ -32,6 +32,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
     post,
     path = "/",
     tag = "nfc",
+    description = "Register a new NFC tag by its URI.",
     request_body = CreateNfcTagRequest,
     responses(
         (status = 201, body = NfcTagResponse),
@@ -54,6 +55,7 @@ pub async fn create_nfc_tag(
     get,
     path = "/",
     tag = "nfc",
+    description = "List all NFC tags in the current group.",
     responses(
         (status = 200, body = Vec<NfcTagResponse>),
     ),
@@ -70,6 +72,7 @@ pub async fn list_nfc_tags(
     get,
     path = "/resolve/{tag_uri}",
     tag = "nfc",
+    description = "Resolve an NFC tag URI to the entity it is assigned to.",
     params(("tag_uri" = String, Path, description = "NFC tag URI")),
     responses(
         (status = 200, body = NfcResolveResponse),
@@ -152,6 +155,7 @@ pub struct UidQuery {
     get,
     path = "/resolve-uid",
     tag = "nfc",
+    description = "Resolve an NFC tag by hardware UID. Returns status: 'assigned', 'unassigned', or 'unknown'.",
     params(UidQuery),
     responses(
         (status = 200, body = NfcUidResolveResponse),
@@ -228,6 +232,7 @@ pub async fn resolve_nfc_tag_by_uid(
     post,
     path = "/register-and-assign",
     tag = "nfc",
+    description = "Register a new NFC tag and assign it to an entity in one step. Reuses existing tag if the URI is already registered.",
     request_body = RegisterAndAssignNfcRequest,
     responses(
         (status = 201, body = NfcTagResponse),
@@ -274,6 +279,7 @@ pub async fn register_and_assign_nfc_tag(
     get,
     path = "/{id}",
     tag = "nfc",
+    description = "Get an NFC tag by ID.",
     params(("id" = Uuid, Path, description = "NFC tag ID")),
     responses(
         (status = 200, body = NfcTagResponse),
@@ -297,6 +303,7 @@ pub async fn get_nfc_tag(
     put,
     path = "/{id}/assign",
     tag = "nfc",
+    description = "Assign an NFC tag to a location or container.",
     params(("id" = Uuid, Path, description = "NFC tag ID")),
     request_body = AssignNfcTagRequest,
     responses(
@@ -333,6 +340,7 @@ pub async fn assign_nfc_tag(
     put,
     path = "/{id}/unassign",
     tag = "nfc",
+    description = "Remove the entity assignment from an NFC tag (keeps the tag registered).",
     params(("id" = Uuid, Path, description = "NFC tag ID")),
     responses(
         (status = 204, description = "Unassigned"),
@@ -352,6 +360,7 @@ pub async fn unassign_nfc_tag(
     delete,
     path = "/{id}",
     tag = "nfc",
+    description = "Delete an NFC tag.",
     params(("id" = Uuid, Path, description = "NFC tag ID")),
     responses(
         (status = 204, description = "Deleted"),

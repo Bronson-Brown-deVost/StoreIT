@@ -29,6 +29,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
     get,
     path = "/",
     tag = "items",
+    description = "List all items.",
     responses(
         (status = 200, body = Vec<ItemResponse>),
     ),
@@ -46,6 +47,7 @@ pub async fn list_items(
     post,
     path = "/",
     tag = "items",
+    description = "Create a new item inside a location or container.",
     request_body = CreateItemRequest,
     responses(
         (status = 201, body = ItemResponse),
@@ -85,6 +87,7 @@ pub async fn create_item(
     post,
     path = "/batch",
     tag = "items",
+    description = "Create multiple items in a single request.",
     request_body = Vec<CreateItemRequest>,
     responses(
         (status = 201, body = Vec<ItemResponse>),
@@ -132,6 +135,7 @@ pub async fn create_item_batch(
     get,
     path = "/{id}",
     tag = "items",
+    description = "Get a single item by ID.",
     params(("id" = Uuid, Path, description = "Item ID")),
     responses(
         (status = 200, body = ItemResponse),
@@ -156,6 +160,7 @@ pub async fn get_item(
     put,
     path = "/{id}",
     tag = "items",
+    description = "Update an item's properties (name, description, category, quantity, etc.).",
     params(("id" = Uuid, Path, description = "Item ID")),
     request_body = UpdateItemRequest,
     responses(
@@ -195,6 +200,7 @@ pub async fn update_item(
     delete,
     path = "/{id}",
     tag = "items",
+    description = "Delete an item.",
     params(("id" = Uuid, Path, description = "Item ID")),
     responses(
         (status = 204, description = "Deleted"),
@@ -216,6 +222,7 @@ pub async fn delete_item(
     post,
     path = "/{id}/move",
     tag = "items",
+    description = "Move an item to a different parent location or container.",
     params(("id" = Uuid, Path, description = "Item ID")),
     request_body = MoveRequest,
     responses(

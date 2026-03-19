@@ -47,6 +47,7 @@ pub fn router() -> utoipa_axum::router::OpenApiRouter<Arc<AppState>> {
     get,
     path = "/users",
     tag = "admin",
+    description = "List all users. Requires admin privileges.",
     responses(
         (status = 200, description = "List all users", body = Vec<AdminUserResponse>),
         (status = 403, description = "Admin access required"),
@@ -69,6 +70,7 @@ async fn list_users(
     post,
     path = "/users",
     tag = "admin",
+    description = "Create a new local user account with username and password.",
     request_body = CreateLocalUserRequest,
     responses(
         (status = 200, description = "User created", body = AdminUserResponse),
@@ -113,6 +115,7 @@ async fn create_user(
     put,
     path = "/users/{id}",
     tag = "admin",
+    description = "Update a user's email, display name, or admin status.",
     params(("id" = Uuid, Path, description = "User ID")),
     request_body = UpdateLocalUserRequest,
     responses(
@@ -183,6 +186,7 @@ async fn update_user(
     put,
     path = "/users/{id}/password",
     tag = "admin",
+    description = "Reset a user's password. Requires admin privileges.",
     params(("id" = Uuid, Path, description = "User ID")),
     request_body = ResetPasswordRequest,
     responses(
@@ -232,6 +236,7 @@ async fn reset_password(
     delete,
     path = "/users/{id}",
     tag = "admin",
+    description = "Delete a user account. Cannot delete your own account.",
     params(("id" = Uuid, Path, description = "User ID")),
     responses(
         (status = 200, description = "User deleted"),
@@ -264,6 +269,7 @@ async fn delete_user(
     get,
     path = "/groups",
     tag = "admin",
+    description = "List all groups.",
     responses(
         (status = 200, description = "List all groups", body = Vec<AdminGroupResponse>),
         (status = 403, description = "Admin access required"),
@@ -286,6 +292,7 @@ async fn list_groups(
     post,
     path = "/groups",
     tag = "admin",
+    description = "Create a new group for organizing users and inventory.",
     request_body = CreateGroupRequest,
     responses(
         (status = 200, description = "Group created", body = AdminGroupResponse),
@@ -313,6 +320,7 @@ async fn create_group(
     delete,
     path = "/groups/{id}",
     tag = "admin",
+    description = "Delete a group. Cannot delete groups that still have members.",
     params(("id" = Uuid, Path, description = "Group ID")),
     responses(
         (status = 200, description = "Group deleted"),
@@ -338,6 +346,7 @@ async fn delete_group(
     get,
     path = "/groups/{id}/members",
     tag = "admin",
+    description = "List all members of a group with their roles.",
     params(("id" = Uuid, Path, description = "Group ID")),
     responses(
         (status = 200, description = "List group members", body = Vec<GroupMemberResponse>),
@@ -370,6 +379,7 @@ async fn list_group_members(
     post,
     path = "/groups/{id}/members",
     tag = "admin",
+    description = "Add a user to a group with a specified role.",
     params(("id" = Uuid, Path, description = "Group ID")),
     request_body = AddMemberRequest,
     responses(
@@ -404,6 +414,7 @@ async fn add_group_member(
     delete,
     path = "/groups/{group_id}/members/{user_id}",
     tag = "admin",
+    description = "Remove a user from a group.",
     params(
         ("group_id" = Uuid, Path, description = "Group ID"),
         ("user_id" = Uuid, Path, description = "User ID"),
@@ -435,6 +446,7 @@ async fn remove_group_member(
     get,
     path = "/settings",
     tag = "admin",
+    description = "Get current admin settings (e.g., image storage path).",
     responses(
         (status = 200, description = "Current admin settings", body = AdminSettingsResponse),
         (status = 403, description = "Admin access required"),
@@ -454,6 +466,7 @@ async fn get_settings(
     put,
     path = "/settings",
     tag = "admin",
+    description = "Update admin settings. Returns 409 if the setting is locked by an environment variable.",
     request_body = UpdateSettingsRequest,
     responses(
         (status = 200, description = "Settings updated", body = AdminSettingsResponse),
@@ -514,6 +527,7 @@ async fn update_settings(
     post,
     path = "/backup",
     tag = "admin",
+    description = "Start an async backup job. Returns a job ID for polling status.",
     request_body = BackupRequest,
     responses(
         (status = 200, description = "Backup job started", body = BackupJobResponse),
@@ -552,6 +566,7 @@ async fn start_backup(
     get,
     path = "/backup/{job_id}/status",
     tag = "admin",
+    description = "Poll the status and progress of a backup job.",
     params(("job_id" = String, Path, description = "Backup job ID")),
     responses(
         (status = 200, description = "Job status", body = JobStatusResponse),
@@ -585,6 +600,7 @@ async fn backup_status(
     get,
     path = "/backup/{job_id}/download",
     tag = "admin",
+    description = "Download the completed backup archive (.storeit file).",
     params(("job_id" = String, Path, description = "Backup job ID")),
     responses(
         (status = 200, description = "Download backup archive"),
@@ -646,6 +662,7 @@ async fn download_backup(
     post,
     path = "/restore",
     tag = "admin",
+    description = "Upload a .storeit archive and start an async restore job. Supports 'replace' and 'merge' modes.",
     responses(
         (status = 200, description = "Restore job started", body = BackupJobResponse),
         (status = 400, description = "Invalid archive"),
@@ -733,6 +750,7 @@ async fn start_restore(
     get,
     path = "/restore/{job_id}/status",
     tag = "admin",
+    description = "Poll the status and progress of a restore job.",
     params(("job_id" = String, Path, description = "Restore job ID")),
     responses(
         (status = 200, description = "Job status", body = JobStatusResponse),
@@ -770,6 +788,7 @@ async fn restore_status(
     get,
     path = "/schema-version",
     tag = "admin",
+    description = "Get the current database schema version and application version.",
     responses(
         (status = 200, description = "Schema version info", body = serde_json::Value),
     ),
@@ -790,6 +809,7 @@ async fn schema_version() -> Json<serde_json::Value> {
     post,
     path = "/migrate-storage",
     tag = "admin",
+    description = "Migrate legacy UUID-based storage keys to content-addressable keys. Safe to run multiple times.",
     responses(
         (status = 200, description = "Migration summary", body = serde_json::Value),
         (status = 403, description = "Admin access required"),

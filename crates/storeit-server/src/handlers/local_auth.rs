@@ -28,6 +28,7 @@ pub fn router() -> utoipa_axum::router::OpenApiRouter<Arc<AppState>> {
     post,
     path = "/login",
     tag = "auth",
+    description = "Authenticate with a local username and password. Returns user info and sets a session cookie.",
     request_body = LocalLoginRequest,
     responses(
         (status = 200, description = "Login successful", body = MeResponse),

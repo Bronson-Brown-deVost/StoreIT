@@ -2,8 +2,8 @@
 
 ## Rust
 
-- **Formatting**: `cargo fmt` (enforced in CI)
-- **Linting**: `cargo clippy -- -D warnings` (all warnings are errors in CI)
+- **Formatting**: `cargo fmt` (enforced in CI, auto-fixed by pre-commit hook)
+- **Linting**: `cargo clippy -- -D warnings` (all warnings are errors in CI, auto-fixed by pre-commit hook)
 - **Edition**: 2024, stable toolchain
 - **Error handling**: `thiserror` for domain errors, `anyhow` in application code, `?` propagation
 - **Async**: `async-trait` for trait methods, `tokio` runtime

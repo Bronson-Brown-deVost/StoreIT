@@ -31,6 +31,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
     get,
     path = "/",
     tag = "locations",
+    description = "List all top-level locations (those with no parent).",
     responses(
         (status = 200, body = Vec<LocationResponse>),
     ),
@@ -48,6 +49,7 @@ pub async fn list_roots(
     post,
     path = "/",
     tag = "locations",
+    description = "Create a new location. Optionally nest it under a parent location.",
     request_body = CreateLocationRequest,
     responses(
         (status = 201, body = LocationResponse),
@@ -80,6 +82,7 @@ pub async fn create_location(
     get,
     path = "/tree",
     tag = "locations",
+    description = "Get the full location hierarchy as a nested tree.",
     responses(
         (status = 200, body = Vec<LocationTreeNodeResponse>),
     ),
@@ -97,6 +100,7 @@ pub async fn get_tree(
     get,
     path = "/{id}",
     tag = "locations",
+    description = "Get a single location by ID.",
     params(("id" = Uuid, Path, description = "Location ID")),
     responses(
         (status = 200, body = LocationResponse),
@@ -121,6 +125,7 @@ pub async fn get_location(
     put,
     path = "/{id}",
     tag = "locations",
+    description = "Update a location's name, description, or coordinates.",
     params(("id" = Uuid, Path, description = "Location ID")),
     request_body = UpdateLocationRequest,
     responses(
@@ -154,6 +159,7 @@ pub async fn update_location(
     delete,
     path = "/{id}",
     tag = "locations",
+    description = "Delete a location. Fails with 409 if it still contains children.",
     params(("id" = Uuid, Path, description = "Location ID")),
     responses(
         (status = 204, description = "Deleted"),
@@ -176,6 +182,7 @@ pub async fn delete_location(
     get,
     path = "/{id}/children",
     tag = "locations",
+    description = "List child locations nested under a parent location.",
     params(("id" = Uuid, Path, description = "Location ID")),
     responses(
         (status = 200, body = Vec<LocationResponse>),
@@ -195,6 +202,7 @@ pub async fn list_children(
     get,
     path = "/{id}/containers",
     tag = "locations",
+    description = "List containers directly inside a location.",
     params(("id" = Uuid, Path, description = "Location ID")),
     responses(
         (status = 200, body = Vec<ContainerResponse>),
@@ -214,6 +222,7 @@ pub async fn list_location_containers(
     get,
     path = "/{id}/items",
     tag = "locations",
+    description = "List items directly inside a location (not in containers).",
     params(("id" = Uuid, Path, description = "Location ID")),
     responses(
         (status = 200, body = Vec<ItemResponse>),

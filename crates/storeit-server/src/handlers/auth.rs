@@ -35,6 +35,7 @@ pub fn router() -> utoipa_axum::router::OpenApiRouter<Arc<AppState>> {
     get,
     path = "/mode",
     tag = "auth",
+    description = "Get the current authentication mode (OIDC or local). Unauthenticated.",
     responses(
         (status = 200, description = "Current auth mode", body = AuthModeResponse),
     ),
@@ -56,6 +57,7 @@ async fn auth_mode(State(state): State<Arc<AppState>>) -> Json<AuthModeResponse>
     get,
     path = "/login",
     tag = "auth",
+    description = "Start the OIDC login flow. Redirects to the identity provider. OIDC mode only.",
     responses(
         (status = 302, description = "Redirect to OIDC provider"),
         (status = 502, description = "Auth provider error"),
@@ -93,6 +95,7 @@ async fn login(
     get,
     path = "/callback",
     tag = "auth",
+    description = "OIDC callback endpoint. Exchanges the authorization code for a session. OIDC mode only.",
     params(AuthCallbackQuery),
     responses(
         (status = 302, description = "Redirect to app after successful auth"),
@@ -216,6 +219,7 @@ async fn callback(
     post,
     path = "/logout",
     tag = "auth",
+    description = "End the current session and clear the session cookie.",
     responses(
         (status = 200, description = "Logged out"),
         (status = 401, description = "Not authenticated"),
@@ -249,6 +253,7 @@ async fn logout(
     get,
     path = "/me",
     tag = "auth",
+    description = "Get the current authenticated user's profile, group memberships, and active group.",
     responses(
         (status = 200, description = "Current user info", body = MeResponse),
         (status = 401, description = "Not authenticated"),
@@ -294,6 +299,7 @@ async fn me(
     put,
     path = "/me/active-group",
     tag = "auth",
+    description = "Switch the active group for the current session. Must be a member of the target group.",
     request_body = SwitchGroupRequest,
     responses(
         (status = 200, description = "Active group switched", body = MeResponse),

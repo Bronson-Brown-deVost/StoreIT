@@ -36,6 +36,16 @@ Open `http://localhost:5173` for hot-reloading frontend development. The Vite de
 
 Without an OIDC provider configured, the mock auth provider is used automatically — any username/password works.
 
+## Git Hooks
+
+The project includes a pre-commit hook that automatically runs `cargo fmt` and `cargo clippy --fix` before each commit. Enable it with:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+This ensures formatting and lint issues are fixed locally before they reach CI.
+
 ## Environment Variables
 
 Copy the defaults or set these in your shell:
